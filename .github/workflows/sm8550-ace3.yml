@@ -78,7 +78,7 @@ jobs:
     - name: 编译内核
       run: |
         cd kernel
-        # export  LTO=thin
+         export  LTO=thin
         ./kernel_platform/oplus/build/oplus_build_kernel.sh kalama gki
         
     - name: 打包 AnyKernel3
