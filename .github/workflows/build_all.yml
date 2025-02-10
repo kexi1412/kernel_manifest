@@ -9,8 +9,8 @@ on:
 jobs:
   build_11r:
     uses: ./.github/workflows/sm8475-11r.yml
-  build_12r:
-    uses: ./.github/workflows/sm8550-12r.yml
+  # build_12r:
+  #  uses: ./.github/workflows/sm8550-12r.yml
   build_ace2pro:
     uses: ./.github/workflows/sm8550-ace2pro.yml
   build_ace3:
@@ -23,3 +23,5 @@ jobs:
     uses: ./.github/workflows/sm7675-ace3v.yml
   build_pad2:
     uses: ./.github/workflows/sm8650-pad2.yml
+  build_ace5:
+    uses: ./.github/workflows/sm8650-ace5.yml
