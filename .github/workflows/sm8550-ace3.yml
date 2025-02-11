@@ -31,9 +31,6 @@ jobs:
       run: |
          git config --global user.name "Yxiguan"
          git config --global user.email "2501608779@qq.com"
-
-    - name: Set up ccache
-      uses: hendrikmuhs/ccache-action@v1.2
       
     - name: 安装repo
       run: |
@@ -76,6 +73,13 @@ jobs:
            cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
            cd common
            patch -p1 < 50_add_susfs_in_gki-android13-5.15.patch
+
+    - name: Setup ccache
+      uses: hendrikmuhs/ccache-action@v1
+      with:
+        key: ${{ runner.os }}-build-${{ env.cache-name }}
+        max-size: 2G
+        save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
            
     - name: 编译内核
       run: |
