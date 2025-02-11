@@ -74,16 +74,18 @@ jobs:
            cd common
            patch -p1 < 50_add_susfs_in_gki-android13-5.15.patch
 
-    - name: Setup ccache
-      uses: hendrikmuhs/ccache-action@v1
+    - name: Cache ccache 
+      uses: actions/cache@v4 
       with:
-        key: ${{ runner.os }}-build-${{ env.cache-name }}
-        max-size: 2G
-        save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/main' }}
+        path: ~/.ccache 
+        key: ccache-$${{ runner.os }}-$$${{ hashFiles('kernel/**') }}
+        restore-keys: |
+          ccache-$${{ runner.os }}-
            
     - name: 编译内核
       run: |
         cd kernel
+        export CC="ccache clang"
         export  LTO=thin
         ./kernel_platform/oplus/build/oplus_build_kernel.sh kalama gki
         
