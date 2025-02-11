@@ -78,9 +78,9 @@ jobs:
       uses: actions/cache@v4 
       with:
         path: ~/.ccache 
-        key: ccache-$${{ runner.os }}-$$${{ hashFiles('~/kernel/**') }}
+        key: ccache-${{ runner.os }}-${{ hashFiles('~/kernel/**') }}
         restore-keys: |
-          ccache-$${{ runner.os }}-
+          ccache-${{ runner.os }}-
            
     - name: 编译内核
       run: |
