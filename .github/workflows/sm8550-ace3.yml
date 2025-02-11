@@ -78,14 +78,17 @@ jobs:
       uses: actions/cache@v4 
       with:
         path: ~/.ccache 
-        key: ccache-$${{ runner.os }}-$$${{ hashFiles('kernel/**') }}
+        key: ccache-$${{ runner.os }}-$$${{ hashFiles('~/kernel/**') }}
         restore-keys: |
           ccache-$${{ runner.os }}-
            
     - name: 编译内核
       run: |
         cd kernel
+        export CCACHE_DIR=~/.ccache
+        export USE_CCACHE=1
         export CC="ccache clang"
+        export CCACHE_EXEC=/usr/bin/ccache
         export  LTO=thin
         ./kernel_platform/oplus/build/oplus_build_kernel.sh kalama gki
         
