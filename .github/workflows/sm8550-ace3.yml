@@ -9,11 +9,6 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
-    env:
-      CCACHE_COMPILERCHECK: "%compiler% -dumpmachine; %compiler% -dumpversion"
-      CCACHE_NOHASHDIR: "true"
-      CCACHE_MAXSIZE: "2G"
-      CCACHE_HARDLINK: "true"
 
     steps:
 
@@ -74,14 +69,6 @@ jobs:
            cd common
            patch -p1 < 50_add_susfs_in_gki-android13-5.15.patch
 
-    - name: Cache ccache 
-      uses: actions/cache@v4 
-      with:
-        path: ~/.ccache 
-        key: ccache-${{ runner.os }}-${{ hashFiles('~/kernel/**') }}
-        restore-keys: |
-          ccache-${{ runner.os }}-
-           
     - name: 编译内核
       run: |
         cd kernel
