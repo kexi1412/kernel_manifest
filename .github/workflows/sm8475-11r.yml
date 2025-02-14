@@ -99,6 +99,7 @@ jobs:
         path: kernel/kernel_platform/out/msm-waipio-waipio-gki/gki_kernel/dist/Image
 
     - name: 上传至 Alist
+      if: ${{ inputs.upload_alist == true }}
       run: |
         git clone https://github.com/Yxiguan/Alist_API.git api
         cp ./api/* ./
