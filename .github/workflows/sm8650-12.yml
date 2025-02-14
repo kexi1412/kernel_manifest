@@ -49,9 +49,8 @@ jobs:
         rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
         sed -i 's/export REPACK_IMG=true/export REPACK_IMG=false/Ig' kernel_platform/oplus/build/oplus_setup.sh
         sed -i 's/ -dirty$//' kernel_platform/common/scripts/setlocalversion
-        sed -i 's/ -dirty$//' kernel_platform/common/scripts/Makefile.modpost
+        sed -i 's/ -dirty$//' kernel_platform/msm-kernel/scripts/setlocalversion
         sed -i 's/EXTRAVERSION =/EXTRAVERSION =-XiGuan/I' kernel_platform/common/Makefile
-        
 
     - name: 添加KernelSU Next
       run: |
@@ -59,7 +58,8 @@ jobs:
         curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
         cd KernelSU-Next
         KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
-        sed -i 's/DKSU_VERSION=16/DKSU_VERSION=${{KSU_VERSION}}/' kernel/Makefile
+        echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+        sed -i 's/DKSU_VERSION=16/DKSU_VERSION=${{ env.KSUVER }}/' kernel/Makefile
         sed -i '30i\$(info -- KernelSU-Next version: $(KSU_VERSION))' kernel/Makefile
         
     - name: 添加SUSFS
