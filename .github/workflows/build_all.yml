@@ -7,21 +7,46 @@ on:
     - cron: '0 20 * * sun'
     
 jobs:
+
   build_11r:
     uses: ./.github/workflows/sm8475-11r.yml
+    with:
+      upload_alist: true
+      
   # build_12r:
   #  uses: ./.github/workflows/sm8550-12r.yml
+  
   build_ace2pro:
     uses: ./.github/workflows/sm8550-ace2pro.yml
+    with:
+      upload_alist: true
+      
   build_ace3:
     uses: ./.github/workflows/sm8550-ace3.yml
+    with:
+      upload_alist: true
+      
   build_12:
     uses: ./.github/workflows/sm8650-12.yml
+    with:
+      upload_alist: true
+      
   build_ace3pro:
     uses: ./.github/workflows/sm8650-ace3pro.yml
+    with:
+      upload_alist: true
+      
   build_ace3v:
     uses: ./.github/workflows/sm7675-ace3v.yml
+    with:
+      upload_alist: true
+      
   build_pad2:
     uses: ./.github/workflows/sm8650-pad2.yml
+    with:
+      upload_alist: true
+      
   build_ace5:
     uses: ./.github/workflows/sm8650-ace5.yml
+    with:
+      upload_alist: true
