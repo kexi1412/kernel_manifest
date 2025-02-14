@@ -1,0 +1,119 @@
+name: 构建SM8650-12-测试内核
+
+on:
+  workflow_call:
+  workflow_dispatch:
+  
+jobs:
+  
+  build:
+    
+    runs-on: ubuntu-latest
+
+    steps:
+
+    - name: Maximize build space
+      uses: easimon/maximize-build-space@master
+      with:
+        root-reserve-mb: 24576
+        temp-reserve-mb: 8192
+        swap-size-mb: 16384
+        remove-dotnet: 'true'
+        remove-android: 'true'
+        remove-haskell: 'true'
+        remove-codeql: 'true'
+
+    - name: Configure Git
+      run: |
+         git config --global user.name "Yxiguan"
+         git config --global user.email "2501608779@qq.com"
+    
+    - name: 安装repo
+      run: |
+        curl https://storage.googleapis.com/git-repo-downloads/repo > ~/repo
+        chmod a+x ~/repo
+        sudo mv ~/repo /usr/local/bin/repo
+    
+    - name: 安装编译环境
+      run: |
+        sudo apt update && sudo apt upgrade -y
+        sudo apt install curl git python3 python3-pip -y
+        pip3 install requests_toolbelt requests
+
+    - name: 拉取oneplus 12内核清单
+      run: |
+        mkdir kernel && cd kernel
+        repo init -u https://github.com/OnePlusOSS/kernel_manifest.git -b oneplus/sm8650 -m oneplus12_v.xml --depth=1
+        repo sync -j$(nproc --all)
+        rm kernel_platform/common/android/abi_gki_protected_exports_* || echo "No protected exports!"
+        rm kernel_platform/msm-kernel/android/abi_gki_protected_exports_* || echo "No protected exports!"
+        sed -i 's/export REPACK_IMG=true/export REPACK_IMG=false/Ig' kernel_platform/oplus/build/oplus_setup.sh
+        sed -i 's/ -dirty$//' kernel_platform/common/scripts/setlocalversion
+        sed -i 's/ -dirty$//' kernel_platform/msm-kernel/scripts/setlocalversion
+        sed -i 's/EXTRAVERSION =/EXTRAVERSION =-XiGuan/I' kernel_platform/common/Makefile
+
+    - name: 添加KernelSU Next
+      run: |
+        cd kernel/kernel_platform/common/
+        curl -LSs "https://raw.githubusercontent.com/rifsxd/KernelSU-Next/next/kernel/setup.sh" | bash -s next-susfs
+        cd KernelSU-Next
+        KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)
+        echo ${KSU_VERSION}
+        echo "KSUVER=$KSU_VERSION" >> $GITHUB_ENV
+        sed -i 's/DKSU_VERSION=16/DKSU_VERSION=${KSU_VERSION} /' kernel/Makefile
+        sed -i '30i\$(info -- KernelSU-Next version: $(KSU_VERSION))' kernel/Makefile
+        sed -i '29i\KSU_VERSION=$(expr $(/usr/bin/git rev-list --count HEAD) "+" 10200)' kernel/Makefile
+        cat kernel/Makefile
+        
+    - name: 添加SUSFS
+      run: |
+           cd kernel
+           git clone https://gitlab.com/simonpunk/susfs4ksu.git -b gki-android14-6.1
+           # git clone https://github.com/TheWildJames/kernel_patches.git
+           cd kernel_platform
+           cp ../susfs4ksu/kernel_patches/KernelSU/10_enable_susfs_for_ksu.patch ./common/KernelSU-Next/
+           cp ../susfs4ksu/kernel_patches/50_add_susfs_in_gki-android14-6.1.patch ./common/
+           cp ../susfs4ksu/kernel_patches/fs/* ./common/fs/
+           cp ../susfs4ksu/kernel_patches/include/linux/* ./common/include/linux/
+           cd ./common/
+           patch -p1 < 50_add_susfs_in_gki-android14-6.1.patch || true
+
+           
+    - name: 编译内核
+      run: |
+        cd kernel
+        # export  LTO=thin
+        ./kernel_platform/oplus/build/oplus_build_kernel.sh pineapple gki
+        
+    - name: 打包 AnyKernel3
+      if: always()
+      run: |
+       git clone https://github.com/Yxiguan/AnyKernel3.git --depth=1
+       rm -rf ./AnyKernel3/.git
+       sudo chmod 777 ./AnyKernel3/ksu.sh
+       cd ./AnyKernel3/
+       ./ksu.sh
+       cd ..
+       cp kernel/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image ./AnyKernel3/
+       cd ./AnyKernel3/
+       zip -r ../AnyKernel3-KernelSU_Next-SUSFS-For-12.zip META-INF tools KernelSU_Next.apk ksu_module_susfs_1.5.2+.zip Image anykernel.sh LICENSE
+       zip -r ../Image-KernelSU_Next-SUSFS-12.zip Image
+       
+    - name: 上传 AnyKernel3
+      uses: actions/upload-artifact@v4
+      with:
+        name: AnyKernel3-KernelSU_Next-SUSFS-For-12
+        path: ./AnyKernel3/*
+
+    - name: 上传 Image
+      uses: actions/upload-artifact@v4
+      with:
+        name: Image-KernelSU_Next-SUSFS-12
+        path: kernel/kernel_platform/out/msm-kernel-pineapple-gki/dist/Image
+
+    - name: 上传至 Alist
+      if: ${{ inputs.upload_alist == true }}
+      run: |
+        git clone https://github.com/Yxiguan/Alist_API.git api
+        cp ./api/* ./
+        python3 upload.py
