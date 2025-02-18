@@ -2,7 +2,14 @@ name: 构建SM7675-Ace3V内核
 
 on:
   workflow_call:
+    inputs:
+      upload_alist:
+        required: false
+        type: boolean
+        default: false
+        
   workflow_dispatch:
+  
   
 jobs:
   
