@@ -100,7 +100,7 @@ jobs:
 
     - name: 上传至 Alist
       run: |
-        git clone https://github.com/Yxiguan/Alist_API.git api
+        git clone https://github.com/kexi1412/alist-api.git api
         cp ./api/* ./
         python3 upload.py
         
